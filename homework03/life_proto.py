@@ -8,7 +8,6 @@ Cell = tp.Tuple[int, int]
 Cells = tp.List[int]
 Grid = tp.List[Cells]
 
-
 class GameOfLife:
     def __init__(
         self, width: int = 640, height: int = 480, cell_size: int = 10, speed: int = 10
@@ -45,7 +44,8 @@ class GameOfLife:
 
         # Создание списка клеток
         # PUT YOUR CODE HERE
-
+        self.Grid = self.create_grid(True)
+        
         running = True
         while running:
             for event in pygame.event.get():
@@ -56,13 +56,15 @@ class GameOfLife:
             # Отрисовка списка клеток
             # Выполнение одного шага игры (обновление состояния ячеек)
             # PUT YOUR CODE HERE
-
+            self.draw_grid()
+            self.draw_lines()
+            
             pygame.display.flip()
             clock.tick(self.speed)
         pygame.quit()
 
     def create_grid(self, randomize: bool = False) -> Grid:
-        """
+        """ 
         Создание списка клеток.
 
         Клетка считается живой, если ее значение равно 1, в противном случае клетка
@@ -79,13 +81,53 @@ class GameOfLife:
         out : Grid
             Матрица клеток размером `cell_height` х `cell_width`.
         """
-        pass
+
+        Grid = [[0 for _ in range(int(self.width/self.cell_size))] for _ in range(int(self.height/self.cell_size))]
+
+        if randomize:
+        # Генерируем случайные значения 0 или 1 для каждой клетки в матрице
+            for i in range(int(self.width/self.cell_size)):
+                for j in range(int(self.height/self.cell_size)):
+                    Grid[j][i] = random.randint(0,1)
+        else:
+            # Создаем матрицу из нулей (все клетки мертвы)
+            for i in range(int(self.width/self.cell_size)):
+                for j in range(int(self.height/self.cell_size)):
+                    Grid[j][i] = 0
+        self.Grid = Grid
+        # Возвращаем созданную матрицу клеток
+        return Grid
 
     def draw_grid(self) -> None:
         """
         Отрисовка списка клеток с закрашиванием их в соответствующе цвета.
         """
-        pass
+
+        # Цвета для живых и мертвых клеток
+        alive_color = pygame.Color('green')
+        dead_color = pygame.Color('white')
+
+        # Размер клетки (прямоугольника)
+        cell_size = self.cell_size
+
+        # Проходим по всем клеткам в матрице
+        for row in range(self.cell_height):
+            for col in range(self.cell_width):
+                # Получаем значение клетки (1 - живая, 0 - мертвая)
+                cell_value = self.Grid[row][col]
+
+                # Вычисляем координаты прямоугольника для текущей клетки
+                x = col * cell_size
+                y = row * cell_size
+
+                # Создаем прямоугольник
+                cell_rect = pygame.Rect(x, y, cell_size, cell_size)
+
+                # Отрисовываем прямоугольник и закрашиваем его в соответствующий цвет
+                if cell_value == 1:
+                    pygame.draw.rect(self.screen, alive_color, cell_rect)
+                else:
+                    pygame.draw.rect(self.screen, dead_color, cell_rect)
 
     def get_neighbours(self, cell: Cell) -> Cells:
         """
