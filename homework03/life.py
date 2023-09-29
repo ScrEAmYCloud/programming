@@ -44,7 +44,7 @@ class GameOfLife:
                     Grid[j][i] = 0
         self.grid = Grid
         # Возвращаем созданную матрицу клеток
-        return Grid
+        return self.grid
 
     def get_neighbours(self, cell: Cell) -> Cells:
         neighbors = []
@@ -110,7 +110,6 @@ class GameOfLife:
             return True
         else:
             return False
-        
 
     @staticmethod
     def from_file(filename: pathlib.Path) -> "GameOfLife":
@@ -139,7 +138,4 @@ class GameOfLife:
                 # Convert each row of the grid to a string and write it to the file
                 row_str = "".join(str(cell) for cell in row)
                 file.write(row_str + "\n")
-
-
-g = GameOfLife((5,5))
 
