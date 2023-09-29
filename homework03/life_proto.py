@@ -3,6 +3,7 @@ import typing as tp
 
 import pygame
 from pygame.locals import *
+from copy import deepcopy
 
 Cell = tp.Tuple[int, int]
 Cells = tp.List[int]
@@ -43,7 +44,6 @@ class GameOfLife:
         self.screen.fill(pygame.Color("white"))
 
         # Создание списка клеток
-        # PUT YOUR CODE HERE
         self.Grid = self.create_grid(True)
         
         running = True
@@ -51,16 +51,18 @@ class GameOfLife:
             for event in pygame.event.get():
                 if event.type == QUIT:
                     running = False
-            self.draw_lines()
 
             # Отрисовка списка клеток
             # Выполнение одного шага игры (обновление состояния ячеек)
-            # PUT YOUR CODE HERE
-            self.draw_grid()
-            self.draw_lines()
             
+            self.screen.fill(pygame.Color("white"))
+
+            self.draw_grid()
+            self.grid = self.get_next_generation()
+            self.draw_lines()
             pygame.display.flip()
             clock.tick(self.speed)
+
         pygame.quit()
 
     def create_grid(self, randomize: bool = False) -> Grid:
@@ -94,7 +96,7 @@ class GameOfLife:
             for i in range(int(self.width/self.cell_size)):
                 for j in range(int(self.height/self.cell_size)):
                     Grid[j][i] = 0
-        self.Grid = Grid
+        self.grid = Grid
         # Возвращаем созданную матрицу клеток
         return Grid
 
@@ -114,7 +116,7 @@ class GameOfLife:
         for row in range(self.cell_height):
             for col in range(self.cell_width):
                 # Получаем значение клетки (1 - живая, 0 - мертвая)
-                cell_value = self.Grid[row][col]
+                cell_value = self.grid[row][col]
 
                 # Вычисляем координаты прямоугольника для текущей клетки
                 x = col * cell_size
@@ -178,4 +180,21 @@ class GameOfLife:
         out : Grid
             Новое поколение клеток.
         """
-        pass
+
+        new_grid = deepcopy(self.grid)
+        for i in range(len(self.grid)):
+            for j in range(len(self.grid[i])):
+                a = sum(self.get_neighbours((i, j)))
+                if self.grid[i][j]:
+                    if a in (2, 3):
+                        new_grid[i][j] = 1
+                    else:
+                        new_grid[i][j] = 0
+                else:
+                    if a == 3:
+                        new_grid[i][j] = 1
+        self.grid = new_grid
+        return self.grid
+
+g = GameOfLife()
+g.run()
