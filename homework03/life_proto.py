@@ -195,6 +195,3 @@ class GameOfLife:
                         new_grid[i][j] = 1
         self.grid = new_grid
         return self.grid
-
-g = GameOfLife()
-g.run()
