@@ -147,7 +147,27 @@ class GameOfLife:
         out : Cells
             Список соседних клеток.
         """
-        pass
+
+        neighbors = []
+        row, col = cell  # Разделим координаты клетки на строку и столбец
+
+        # Перебираем соседние клетки вокруг данной клетки
+        for dr in [-1, 0, 1]:
+            for dc in [-1, 0, 1]:
+                # Исключаем клетку саму себя
+                if dr == 0 and dc == 0:
+                    continue
+
+                # Вычисляем координаты соседней клетки
+                neighbor_row = row + dr
+                neighbor_col = col + dc
+
+                # Проверяем, что соседние координаты находятся в пределах матрицы Grid
+                if 0 <= neighbor_row < len(self.grid) and 0 <= neighbor_col < len(self.grid[0]):
+                    # Добавляем соседнюю клетку в список соседей
+                    neighbors.append(self.grid[neighbor_row][neighbor_col])
+
+        return neighbors
 
     def get_next_generation(self) -> Grid:
         """
