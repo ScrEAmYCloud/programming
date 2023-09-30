@@ -22,8 +22,14 @@ def hash_object(data: bytes, fmt: str, write: bool = False) -> str:
 
 
 def resolve_object(obj_name: str, gitdir: pathlib.Path) -> tp.List[str]:
-    # PUT YOUR CODE HERE
-    ...
+    content = []
+    if len(obj_name) > 40 or len(obj_name) < 4:
+        raise Exception(f"Not a valid object name {obj_name}")
+    for file in (gitdir / "objects" / obj_name[:2]).glob(f"{obj_name[2:]}*"):
+        content.append(obj_name[:2] + file.name)
+    if len(content) == 0:
+        raise Exception(f"Not a valid object name {obj_name}")
+    return content
 
 
 def find_object(obj_name: str, gitdir: pathlib.Path) -> str:
@@ -32,18 +38,29 @@ def find_object(obj_name: str, gitdir: pathlib.Path) -> str:
 
 
 def read_object(sha: str, gitdir: pathlib.Path) -> tp.Tuple[str, bytes]:
-    # PUT YOUR CODE HERE
-    ...
+    path = gitdir / "objects" / sha[:2] / sha[2:]
+    with open(path, "rb") as f:
+        data = zlib.decompress(f.read())
+    return data.split(b" ")[0].decode(), data.split(b"\00", maxsplit=1)[1]
 
 
 def read_tree(data: bytes) -> tp.List[tp.Tuple[int, str, str]]:
-    # PUT YOUR CODE HERE
-    ...
-
+    tree = []
+    while data:
+        sha_pos = data.index(b"\00")
+        mode, name = map(lambda x: x.decode(), data[:sha_pos].split(b" "))
+        sha = data[sha_pos + 1 : sha_pos + 21]
+        tree.append((int(mode), str(sha.hex()), str(name)))
+        data = data[sha_pos + 21 :]
+    return tree
 
 def cat_file(obj_name: str, pretty: bool = True) -> None:
-    # PUT YOUR CODE HERE
-    ...
+    fmt, data = read_object(obj_name, repo_find())
+    if fmt in ["blob", "commit"]:
+        print(data.decode())
+    else:
+        for index in read_tree(data):
+            print(f"{index[0]:06}", "tree" if index[0] == 40000 else "blob", index[1] + "\t" + index[2])
 
 
 def find_tree_files(tree_sha: str, gitdir: pathlib.Path) -> tp.List[tp.Tuple[str, str]]:
