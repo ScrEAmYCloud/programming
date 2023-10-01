@@ -29,7 +29,7 @@ def get_friends(
     :return: Список идентификаторов друзей пользователя или список пользователей.
     """
     user_data = {
-        "access_token": config.VK_CONFIG["acceess_token"],
+        "access_token": config.VK_CONFIG["access_token"],
         "v": config.VK_CONFIG["version"],
         "count": count,
         "user_id": user_id if user_id is not None else "",
@@ -72,4 +72,46 @@ def get_mutual(
     :param offset: Смещение, необходимое для выборки определенного подмножества общих друзей.
     :param progress: Callback для отображения прогресса.
     """
-    pass
+    if target_uid is not None:
+        return session.get(
+            "friends.getMutual",
+            params={
+                "source_uid": source_uid,
+                "target_uid": target_uid,
+                "order": order,
+                "count": count,
+                "offset": offset,
+                "access_token": config.VK_CONFIG["access_token"],
+                "v": config.VK_CONFIG["version"],
+            },
+        ).json()["response"]
+
+    result: tp.List[MutualFriends] = []
+    range_ = range(0, len(target_uids), 100)  # type: ignore
+    if progress is not None:
+        range_ = progress(range_)
+
+    for cursor in range_:
+        response = session.get(
+            "friends.getMutual",
+            params={
+                "source_uid": source_uid,
+                "target_uids": ",".join([str(i) for i in target_uids[cursor : cursor + 100]]),  # type: ignore
+                "order": order,
+                "count": count,
+                "offset": offset + cursor,
+                "access_token": config.VK_CONFIG["access_token"],
+                "v": config.VK_CONFIG["version"],
+            },
+        ).json()["response"]
+        result.extend(
+            MutualFriends(
+                id=data["id"],
+                common_friends=data["common_friends"],
+                common_count=data["common_count"],
+            )
+            for data in response
+        )
+        time.sleep(1 / 3 + 0.01)
+
+    return result
