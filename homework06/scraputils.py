@@ -54,7 +54,7 @@ def extract_news(parser):
 
 def extract_next_page(parser):
     """ Extract next page URL """
-    link = parser.select(".morelink")[0]["href"]
+    link = parser.find('a', class_="morelink")["href"]
     if link is None:
         raise Exception("Parsed all news")
     return str(link[link.index("?") :])
